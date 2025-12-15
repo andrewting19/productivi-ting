@@ -1,4 +1,4 @@
-// Dopamine Detox - Popup Logic
+// REJECT BRAINROT - Popup Logic
 
 // Default settings
 const DEFAULT_SETTINGS = {

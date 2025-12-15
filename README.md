@@ -1,6 +1,6 @@
-# Dopamine Detox
+# REJECT BRAINROT
 
-A Chrome extension that applies visual filters to distracting websites and blocks video autoplay to help you stay focused and break the dopamine-driven scrolling habit.
+A Chrome extension that makes distracting sites ugly and forces you to do math before watching videos. Touch grass, but digitally.
 
 ## Features
 

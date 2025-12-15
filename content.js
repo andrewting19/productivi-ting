@@ -1,4 +1,4 @@
-// Dopamine Detox - Content Script
+// REJECT BRAINROT - Content Script
 // Applies visual filter and blocks video autoplay based on settings
 
 (function() {
@@ -331,7 +331,7 @@
       cancelBtn.addEventListener('click', () => closeModal(false));
 
     } catch (err) {
-      console.error('[Dopamine Detox] Error showing modal:', err);
+      console.error('[REJECT BRAINROT] Error showing modal:', err);
     }
   }
 
@@ -397,13 +397,13 @@
       html.style.setProperty('filter', filter, 'important');
       html.style.setProperty('-webkit-filter', filter, 'important');
       filterActive = true;
-      console.log('[Dopamine Detox] Filter active - stay focused!');
+      console.log('[REJECT BRAINROT] Filter active - stay focused!');
     } else if (!shouldFilter && filterActive) {
       // Remove filter
       html.style.removeProperty('filter');
       html.style.removeProperty('-webkit-filter');
       filterActive = false;
-      console.log('[Dopamine Detox] Filter removed');
+      console.log('[REJECT BRAINROT] Filter removed');
     } else if (shouldFilter && filterActive) {
       // Update filter (settings may have changed)
       const filter = getCurrentFilter();

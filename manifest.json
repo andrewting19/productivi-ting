@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Dopamine Detox",
+  "name": "REJECT BRAINROT",
   "version": "1.2.0",
-  "description": "Applies visual filters to distracting websites and blocks autoplay to help you stay focused",
+  "description": "Makes distracting sites ugly and forces you to do math before watching videos",
   "permissions": ["storage", "alarms", "sidePanel"],
   "action": {
     "default_icon": {

@@ -1,4 +1,4 @@
-// Dopamine Detox - Background Service Worker
+// REJECT BRAINROT - Background Service Worker
 
 // Open side panel when extension icon is clicked
 chrome.action.onClicked.addListener((tab) => {

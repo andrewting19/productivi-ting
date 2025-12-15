@@ -1,4 +1,4 @@
-// Dopamine Detox - Side Panel Logic
+// REJECT BRAINROT - Side Panel Logic
 
 // Default settings
 const DEFAULT_SETTINGS = {
