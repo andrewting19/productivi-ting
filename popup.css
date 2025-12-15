@@ -1,0 +1,412 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  width: 320px;
+  background: #1a1a2e;
+  color: #eee;
+}
+
+.container {
+  padding: 16px;
+}
+
+.view {
+  display: block;
+}
+
+.view.hidden {
+  display: none;
+}
+
+h1 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #fff;
+}
+
+h2 {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Status Bar */
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #666;
+}
+
+.status-dot.active {
+  background: #4ade80;
+  box-shadow: 0 0 8px #4ade80;
+}
+
+.status-dot.paused {
+  background: #fbbf24;
+  box-shadow: 0 0 8px #fbbf24;
+}
+
+#status-text {
+  font-size: 13px;
+  color: #aaa;
+}
+
+/* Setting Groups */
+.setting-group {
+  margin-bottom: 20px;
+}
+
+/* Toggle Buttons */
+.toggle-group {
+  display: flex;
+  gap: 8px;
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #333;
+  background: transparent;
+  color: #888;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.toggle-btn:hover {
+  border-color: #555;
+  color: #ccc;
+}
+
+.toggle-btn.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #fff;
+}
+
+/* Site List */
+.site-list {
+  max-height: 120px;
+  overflow-y: auto;
+  margin-bottom: 8px;
+}
+
+.site-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+.site-item span {
+  color: #ccc;
+}
+
+.site-item button {
+  background: transparent;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0 4px;
+}
+
+.site-item button:hover {
+  color: #ef4444;
+}
+
+.add-site {
+  display: flex;
+  gap: 8px;
+}
+
+.add-site input {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid #333;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  color: #fff;
+  font-size: 13px;
+}
+
+.add-site input::placeholder {
+  color: #555;
+}
+
+.add-site button {
+  padding: 8px 16px;
+  background: #3b82f6;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.add-site button:hover {
+  background: #2563eb;
+}
+
+/* Break Buttons */
+.hint {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.break-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.break-btn {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #444;
+  background: transparent;
+  color: #888;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.break-btn:hover {
+  border-color: #666;
+  color: #ccc;
+}
+
+/* Challenge View */
+.challenge-intro {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 20px;
+}
+
+.challenge-step {
+  margin-bottom: 20px;
+}
+
+.challenge-step.hidden {
+  display: none;
+}
+
+.challenge-step.completed h2 {
+  color: #4ade80;
+}
+
+.challenge-step.completed h2::after {
+  content: ' ✓';
+}
+
+.math-problem {
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+  margin: 12px 0;
+  text-align: center;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+#math-answer,
+#remove-math-answer {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #333;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 16px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+#math-submit,
+#remove-math-submit {
+  width: 100%;
+  padding: 12px;
+  background: #3b82f6;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.feedback {
+  font-size: 13px;
+  margin-top: 8px;
+  min-height: 20px;
+}
+
+.feedback.error {
+  color: #ef4444;
+}
+
+.feedback.success {
+  color: #4ade80;
+}
+
+/* Typing Challenge */
+.typing-prompt {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #fff;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  border-left: 3px solid #3b82f6;
+}
+
+#typing-input {
+  width: 100%;
+  height: 80px;
+  padding: 12px;
+  border: 1px solid #333;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: none;
+}
+
+#typing-input.has-error {
+  border-color: #ef4444;
+}
+
+#typing-input.correct {
+  border-color: #4ade80;
+}
+
+/* Timer */
+.timer-display {
+  text-align: center;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+#timer-count {
+  font-size: 48px;
+  font-weight: 700;
+  color: #3b82f6;
+  display: block;
+}
+
+.timer-display span:last-child {
+  font-size: 14px;
+  color: #666;
+}
+
+.encouragement {
+  font-size: 14px;
+  color: #aaa;
+  text-align: center;
+  line-height: 1.6;
+  padding: 12px;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 8px;
+  min-height: 60px;
+}
+
+/* Success */
+#step-success {
+  text-align: center;
+}
+
+#step-success h2 {
+  color: #4ade80;
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+
+#success-message {
+  color: #888;
+  margin-bottom: 16px;
+}
+
+#confirm-break,
+#cancel-break {
+  width: 100%;
+  padding: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+#confirm-break {
+  background: #3b82f6;
+  border: none;
+  color: #fff;
+}
+
+#cancel-break {
+  background: transparent;
+  border: 1px solid #333;
+  color: #888;
+}
+
+/* Cancel Button */
+.cancel-btn {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  border: 1px solid #333;
+  border-radius: 6px;
+  color: #666;
+  cursor: pointer;
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+.cancel-btn:hover {
+  border-color: #555;
+  color: #888;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}

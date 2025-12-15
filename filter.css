@@ -1,0 +1,16 @@
+/* Dopamine Detox - Base Styles */
+/* Filters are applied dynamically via JavaScript based on settings */
+
+/* Ensure filter inheritance for media elements */
+html img,
+html video,
+html canvas,
+html iframe {
+  filter: inherit !important;
+  -webkit-filter: inherit !important;
+}
+
+/* Disable transitions to prevent filter flickering */
+html.dopamine-detox-active * {
+  transition: filter 0s !important;
+}

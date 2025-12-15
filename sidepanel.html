@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dopamine Detox</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Main Settings View -->
+    <div id="settings-view" class="view">
+      <header>
+        <h1>Dopamine Detox</h1>
+        <div class="status-bar" id="status-bar">
+          <span class="status-dot active"></span>
+          <span id="status-text">Active</span>
+        </div>
+        <button id="end-break-btn" class="end-break-btn hidden">End Break Early</button>
+      </header>
+
+      <section class="setting-group">
+        <h2>Filter Type</h2>
+        <div class="toggle-group">
+          <button class="toggle-btn active" data-filter="red">Red</button>
+          <button class="toggle-btn" data-filter="grayscale">Grayscale</button>
+        </div>
+      </section>
+
+      <section class="setting-group">
+        <h2>Intensity</h2>
+        <div class="toggle-group intensity">
+          <button class="toggle-btn" data-intensity="low">Low</button>
+          <button class="toggle-btn active" data-intensity="medium">Medium</button>
+          <button class="toggle-btn" data-intensity="high">High</button>
+        </div>
+        <p class="intensity-hint" id="intensity-hint">Moderate filter with reduced brightness</p>
+      </section>
+
+      <section class="setting-group">
+        <h2>Blocked Sites</h2>
+        <div class="site-list" id="site-list">
+          <!-- Sites will be populated by JS -->
+        </div>
+        <div class="add-site">
+          <input type="text" id="new-site" placeholder="Add site (e.g. example.com)">
+          <button id="add-site-btn">Add</button>
+        </div>
+      </section>
+
+      <section class="setting-group break-section">
+        <h2>Take a Break</h2>
+        <p class="hint">Need to disable? Complete a focus challenge first.</p>
+        <div class="break-buttons">
+          <button class="break-btn" data-duration="5">
+            <span class="break-icon">5</span>
+            <span>5 min break</span>
+          </button>
+          <button class="break-btn" data-duration="end">
+            <span class="break-icon">~</span>
+            <span>Done for today</span>
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Challenge View -->
+    <div id="challenge-view" class="view hidden">
+      <header>
+        <h1>Focus Challenge</h1>
+        <p class="challenge-intro" id="challenge-intro">Complete these steps to take a break.</p>
+      </header>
+
+      <div class="progress-bar">
+        <div class="progress-step" id="prog-math">1</div>
+        <div class="progress-line"></div>
+        <div class="progress-step" id="prog-typing">2</div>
+        <div class="progress-line"></div>
+        <div class="progress-step" id="prog-wait">3</div>
+      </div>
+
+      <!-- Step 1: Math -->
+      <div class="challenge-step" id="step-math">
+        <h2>Step 1: Quick Math</h2>
+        <p class="step-desc">Solve this problem in your head</p>
+        <div class="math-problem" id="math-problem"></div>
+        <input type="number" id="math-answer" placeholder="Your answer">
+        <button id="math-submit" class="primary-btn">Check Answer</button>
+        <p class="feedback" id="math-feedback"></p>
+      </div>
+
+      <!-- Step 2: Typing -->
+      <div class="challenge-step hidden" id="step-typing">
+        <h2>Step 2: Type This Affirmation</h2>
+        <p class="step-desc">Type the text below exactly as shown</p>
+        <div class="typing-prompt" id="typing-prompt"></div>
+        <textarea id="typing-input" placeholder="Start typing..."></textarea>
+        <p class="feedback" id="typing-feedback"></p>
+      </div>
+
+      <!-- Step 3: Wait -->
+      <div class="challenge-step hidden" id="step-wait">
+        <h2>Step 3: Pause & Reflect</h2>
+        <p class="step-desc">Take a moment to consider if you really need this break</p>
+        <div class="timer-display">
+          <svg class="timer-ring" viewBox="0 0 100 100">
+            <circle class="timer-ring-bg" cx="50" cy="50" r="45"/>
+            <circle class="timer-ring-progress" id="timer-progress" cx="50" cy="50" r="45"/>
+          </svg>
+          <div class="timer-text">
+            <span id="timer-count">15</span>
+            <span>seconds</span>
+          </div>
+        </div>
+        <div class="encouragement" id="encouragement"></div>
+      </div>
+
+      <!-- Success -->
+      <div class="challenge-step hidden" id="step-success">
+        <div class="success-icon">✓</div>
+        <h2>Challenge Complete!</h2>
+        <p id="success-message"></p>
+        <button id="confirm-break" class="primary-btn">Take Break</button>
+        <button id="cancel-break" class="secondary-btn">Actually, Stay Focused</button>
+      </div>
+
+      <button id="challenge-cancel" class="cancel-btn">Cancel Challenge</button>
+    </div>
+
+    <!-- Remove Site Challenge -->
+    <div id="remove-challenge-view" class="view hidden">
+      <header>
+        <h1>Remove Site</h1>
+        <p>To remove <strong id="site-to-remove"></strong> from blocking, solve this:</p>
+      </header>
+      <div class="math-problem" id="remove-math-problem"></div>
+      <input type="number" id="remove-math-answer" placeholder="Your answer">
+      <button id="remove-math-submit" class="primary-btn">Remove Site</button>
+      <p class="feedback" id="remove-feedback"></p>
+      <button id="remove-cancel" class="cancel-btn">Cancel</button>
+    </div>
+  </div>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>

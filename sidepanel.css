@@ -1,0 +1,612 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0f0f1a;
+  color: #e0e0e0;
+  min-height: 100vh;
+}
+
+.container {
+  padding: 24px;
+  max-width: 400px;
+}
+
+.view {
+  display: block;
+}
+
+.view.hidden {
+  display: none;
+}
+
+/* Header */
+header {
+  margin-bottom: 28px;
+}
+
+h1 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 12px;
+}
+
+h2 {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+/* Status Bar */
+.status-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #666;
+}
+
+.status-dot.active {
+  background: #22c55e;
+  box-shadow: 0 0 10px #22c55e;
+}
+
+.status-dot.paused {
+  background: #f59e0b;
+  box-shadow: 0 0 10px #f59e0b;
+}
+
+#status-text {
+  font-size: 13px;
+  color: #aaa;
+}
+
+/* End Break Button */
+.end-break-btn {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px 16px;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  color: #f59e0b;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.end-break-btn:hover {
+  background: rgba(245, 158, 11, 0.25);
+}
+
+.end-break-btn.hidden {
+  display: none;
+}
+
+/* Setting Groups */
+.setting-group {
+  margin-bottom: 28px;
+}
+
+/* Toggle Buttons */
+.toggle-group {
+  display: flex;
+  gap: 8px;
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid #2a2a3a;
+  background: rgba(255, 255, 255, 0.03);
+  color: #888;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.toggle-btn:hover {
+  border-color: #3a3a4a;
+  color: #bbb;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.toggle-btn.active {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.intensity-hint {
+  font-size: 12px;
+  color: #666;
+  margin-top: 10px;
+  font-style: italic;
+}
+
+/* Site List */
+.site-list {
+  max-height: 180px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.site-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 14px;
+}
+
+.site-item:last-child {
+  border-bottom: none;
+}
+
+.site-item span {
+  color: #ccc;
+}
+
+.site-item button {
+  background: transparent;
+  border: none;
+  color: #555;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.site-item button:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.add-site {
+  display: flex;
+  gap: 10px;
+}
+
+.add-site input {
+  flex: 1;
+  padding: 12px 14px;
+  border: 1px solid #2a2a3a;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+}
+
+.add-site input::placeholder {
+  color: #555;
+}
+
+.add-site input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.add-site button {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.add-site button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Break Section */
+.break-section {
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.hint {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 14px;
+}
+
+.break-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.break-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px;
+  border: 1px solid #2a2a3a;
+  background: rgba(255, 255, 255, 0.02);
+  color: #888;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.break-btn:hover {
+  border-color: #3a3a4a;
+  color: #bbb;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.break-icon {
+  font-size: 20px;
+  font-weight: 600;
+  color: #666;
+}
+
+/* Challenge View */
+.challenge-intro {
+  font-size: 14px;
+  color: #888;
+}
+
+/* Progress Bar */
+.progress-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin: 24px 0;
+}
+
+.progress-step {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #2a2a3a;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.progress-step.active {
+  background: #3b82f6;
+  color: #fff;
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.4);
+}
+
+.progress-step.completed {
+  background: #22c55e;
+  color: #fff;
+}
+
+.progress-line {
+  width: 40px;
+  height: 2px;
+  background: #2a2a3a;
+}
+
+/* Challenge Steps */
+.challenge-step {
+  margin-bottom: 20px;
+}
+
+.challenge-step.hidden {
+  display: none;
+}
+
+.step-desc {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 16px;
+}
+
+.math-problem {
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+  padding: 24px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+  border-radius: 12px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+#math-answer,
+#remove-math-answer {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #2a2a3a;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 18px;
+  text-align: center;
+  margin-bottom: 12px;
+  -moz-appearance: textfield;
+}
+
+/* Hide number input spinners */
+#math-answer::-webkit-inner-spin-button,
+#math-answer::-webkit-outer-spin-button,
+#remove-math-answer::-webkit-inner-spin-button,
+#remove-math-answer::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+#math-answer:focus,
+#remove-math-answer:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.primary-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.primary-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+}
+
+.secondary-btn {
+  width: 100%;
+  padding: 14px;
+  background: transparent;
+  border: 1px solid #2a2a3a;
+  border-radius: 8px;
+  color: #888;
+  cursor: pointer;
+  font-size: 15px;
+  margin-top: 10px;
+  transition: all 0.2s;
+}
+
+.secondary-btn:hover {
+  border-color: #3a3a4a;
+  color: #bbb;
+}
+
+.feedback {
+  font-size: 13px;
+  margin-top: 12px;
+  min-height: 20px;
+  text-align: center;
+}
+
+.feedback.error {
+  color: #ef4444;
+}
+
+.feedback.success {
+  color: #22c55e;
+}
+
+/* Typing Challenge */
+.typing-prompt {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #fff;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+  border-radius: 12px;
+  margin-bottom: 14px;
+  border-left: 3px solid #3b82f6;
+}
+
+#typing-input {
+  width: 100%;
+  height: 100px;
+  padding: 14px;
+  border: 1px solid #2a2a3a;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 15px;
+  line-height: 1.6;
+  resize: none;
+}
+
+#typing-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+#typing-input.has-error {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.05);
+}
+
+#typing-input.correct {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.05);
+}
+
+/* Timer */
+.timer-display {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin: 20px auto;
+}
+
+.timer-ring {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.timer-ring-bg {
+  fill: none;
+  stroke: #2a2a3a;
+  stroke-width: 6;
+}
+
+.timer-ring-progress {
+  fill: none;
+  stroke: #3b82f6;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: 283;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1s linear;
+}
+
+.timer-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+#timer-count {
+  font-size: 36px;
+  font-weight: 700;
+  color: #fff;
+  display: block;
+}
+
+.timer-text span:last-child {
+  font-size: 12px;
+  color: #666;
+}
+
+.encouragement {
+  font-size: 14px;
+  color: #bbb;
+  text-align: center;
+  line-height: 1.7;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(59, 130, 246, 0.1));
+  border-radius: 12px;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Success */
+#step-success {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.success-icon {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: #fff;
+  margin: 0 auto 16px;
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.3);
+}
+
+#step-success h2 {
+  color: #22c55e;
+  font-size: 18px;
+  text-transform: none;
+  letter-spacing: 0;
+  margin-bottom: 8px;
+}
+
+#success-message {
+  color: #888;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+/* Cancel Button */
+.cancel-btn {
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  border: 1px solid #2a2a3a;
+  border-radius: 8px;
+  color: #666;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 20px;
+  transition: all 0.2s;
+}
+
+.cancel-btn:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #444;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.challenge-step {
+  animation: fadeIn 0.3s ease;
+}
