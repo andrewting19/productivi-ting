@@ -6,12 +6,13 @@ A Chrome extension that applies visual filters to distracting websites to reduce
 
 When you visit distracting sites (Twitter/X, YouTube, Instagram, TikTok, Reddit, etc.), the extension:
 1. Applies a **visual filter** (red tint or grayscale) to make the site less appealing
-2. **Blocks video autoplay** while still allowing manual playback
-3. Reduces brightness and contrast to minimize visual stimulation
+2. **Blocks video autoplay** - no more infinite scrolling through autoplaying videos
+3. **Requires a math challenge** to manually play any video - creates friction to break autopilot habits
+4. Reduces brightness and contrast to minimize visual stimulation
 
 ## How It Works
 
-- **Content Script** (`content.js`): Injected into every page, checks if the current site is in the blocked list, applies CSS filters to the `<html>` element, and pauses autoplaying videos
+- **Content Script** (`content.js`): Injected into every page and iframe, checks if the current site is in the blocked list, applies CSS filters, blocks video autoplay, and shows the math challenge modal when user tries to play a video
 - **Side Panel** (`sidepanel.js/html/css`): Settings UI accessible by clicking the extension icon
 - **Background Worker** (`background.js`): Manages alarms for auto-re-enabling after breaks, broadcasts settings changes to all tabs
 - **Storage**: Uses `chrome.storage.sync` to persist settings across devices
@@ -77,12 +78,17 @@ If you change your mind during a break, an "End Break Early" button appears to i
 ├── background.js       # Service worker for alarms and message passing
 ├── content.js          # Injected script for filters, video blocking, and unlock modal
 ├── filter.css          # Base CSS for filter inheritance
-├── sidepanel.html      # Settings UI markup
+├── sidepanel.html      # Settings UI markup (active)
 ├── sidepanel.css       # Settings UI styles (dark theme)
 ├── sidepanel.js        # Settings logic, challenge system
+├── popup.html          # Alternative popup UI (not currently used)
+├── popup.css           # Popup styles
+├── popup.js            # Popup logic
 ├── icons/              # Extension icons (16, 48, 128px)
+├── README.md           # User-facing documentation
+├── LICENSE             # MIT license
 ├── .gitignore          # Git ignore rules
-└── CLAUDE.md           # This file
+└── CLAUDE.md           # Developer documentation (this file)
 ```
 
 ## Installation
