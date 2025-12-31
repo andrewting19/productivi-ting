@@ -9,13 +9,15 @@ When you visit distracting sites (Twitter/X, YouTube, Instagram, TikTok, Reddit,
 2. **Blocks video autoplay** - no more infinite scrolling through autoplaying videos
 3. **Requires a math challenge** to manually play any video - creates friction to break autopilot habits
 4. Reduces brightness and contrast to minimize visual stimulation
+5. **Schedule-based activation** - filters only active during configured hours (default: 4am-9pm)
+6. **Intentionality prompts** - for configured sites (default: Twitter, YouTube), requires stating your purpose and time limit before entry; auto-closes tabs when time expires
 
 ## How It Works
 
-- **Content Script** (`content.js`): Injected into every page and iframe, checks if the current site is in the blocked list, applies CSS filters, blocks video autoplay, and shows the math challenge modal when user tries to play a video
-- **Side Panel** (`sidepanel.js/html/css`): Settings UI accessible by clicking the extension icon
-- **Background Worker** (`background.js`): Manages alarms for auto-re-enabling after breaks, broadcasts settings changes to all tabs
-- **Storage**: Uses `chrome.storage.sync` to persist settings across devices
+- **Content Script** (`content.js`): Injected into every page and iframe, checks if the current site is in the blocked list, applies CSS filters, blocks video autoplay, shows the math challenge modal when user tries to play a video, and displays the intentionality overlay for configured sites
+- **Side Panel** (`sidepanel.js/html/css`): Settings UI accessible by clicking the extension icon, includes schedule configuration and intentionality site management
+- **Background Worker** (`background.js`): Manages alarms for auto-re-enabling after breaks, tracks intentionality sessions, handles auto-closing tabs when session expires, broadcasts settings changes to all tabs
+- **Storage**: Uses `chrome.storage.sync` to persist settings across devices (schedule settings, intentionality sites, etc.)
 
 ## Features
 
@@ -70,6 +72,37 @@ Three sequential steps designed to create friction and break the dopamine loop:
 ### End Break Early
 If you change your mind during a break, an "End Break Early" button appears to immediately re-enable the filters.
 
+### Schedule System
+Filters are only active during configured hours:
+- **Default schedule**: 4:00 AM to 9:00 PM (filters active)
+- **Outside schedule hours**: Filters automatically disabled, status shows "Off (outside schedule)"
+- **Configurable**: Toggle schedule on/off, set custom start/end times via sidepanel
+- **24-hour support**: Schedule can span midnight (e.g., 9 PM to 4 AM means filters OFF during those hours)
+
+### Intentionality System
+For designated high-distraction sites, requires mindful engagement before access:
+
+**Configured Sites** (default: x.com, twitter.com, youtube.com):
+- Separate list from blocked sites
+- Add/remove sites without challenge
+
+**Intentionality Flow**:
+1. **Navigate to intentionality site** → Full-page overlay blocks content
+2. **State your purpose**: Text field asking "Why are you opening this site?"
+3. **Set time limit**: Custom minutes (1-120) for intended usage
+4. **20-second wait**: Rotating encouragement quotes while you reflect
+5. **Enter or Quit**: "Quit" closes the tab, "Enter Site" starts session
+
+**Session Tracking**:
+- Once entered, all tabs of that site during the session are tracked
+- Opening new tabs of the same site doesn't require new intentionality check
+- Background worker manages session state and tab tracking
+
+**Auto-Close**:
+- When time limit expires, ALL tabs of that site are automatically closed
+- No warning before closing
+- Encourages sticking to stated intentions
+
 ## File Structure
 
 ```
@@ -101,5 +134,6 @@ If you change your mind during a break, an "End Break Early" button appears to i
 ## Permissions Used
 
 - `storage`: Save settings across sessions
-- `alarms`: Auto-re-enable after timed breaks
+- `alarms`: Auto-re-enable after timed breaks, check intentionality session expiry
 - `sidePanel`: Display settings in Chrome's side panel
+- `tabs`: Close tabs when intentionality session expires

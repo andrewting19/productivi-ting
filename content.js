@@ -1,5 +1,5 @@
 // REJECT BRAINROT - Content Script
-// Applies visual filter and blocks video autoplay based on settings
+// Applies visual filter, blocks video autoplay, and shows intentionality overlay
 
 (function() {
   'use strict';
@@ -18,6 +18,30 @@
     }
   };
 
+  // Encouragement messages for the intentionality wait timer
+  const ENCOURAGEMENTS = [
+    "You installed this extension for a reason. Remember what it was.",
+    "Nothing on that site has changed in the last 30 seconds.",
+    "The scroll you're craving will feel empty 10 seconds after you do it.",
+    "You've seen this exact dopamine loop a thousand times. You know how it ends.",
+    "That thing you've been putting off? This is a good time for it.",
+    "The content isn't going anywhere. It'll be just as mediocre later.",
+    "You don't actually want to scroll. You want to avoid something else.",
+    "This restless feeling is temporary. Giving in makes it come back stronger.",
+    "Most of what you'd see isn't even good. You know this.",
+    "20 seconds of discomfort vs. an hour you won't get back.",
+    "The algorithm is testing how cheaply it can buy your time.",
+    "You're not missing anything. It's the same takes as yesterday.",
+    "This is just a craving. You don't have to act on cravings.",
+    "How many times have you scrolled for 'just a minute'?",
+    "The thing you'd see first wouldn't even be interesting.",
+    "Your brain is throwing a small tantrum. It'll pass.",
+    "Every app on that site wants you to stay forever. That's the whole business model.",
+    "You're experiencing a trained response. You can untrain it.",
+    "What were you actually trying to do before you wanted to check?",
+    "Boredom isn't an emergency. It's just a feeling."
+  ];
+
   // Default settings
   const DEFAULT_SETTINGS = {
     filterType: 'red',
@@ -28,19 +52,26 @@
       'snapchat.com', 'pinterest.com'
     ],
     enabled: true,
-    pausedUntil: null
+    pausedUntil: null,
+    scheduleEnabled: true,
+    scheduleStart: 4,
+    scheduleEnd: 21,
+    intentionalitySites: ['x.com', 'twitter.com', 'youtube.com']
   };
 
   let settings = { ...DEFAULT_SETTINGS };
   let isBlockedSite = false;
   let filterActive = false;
+  let intentionalityShown = false;
+  let intentionalityPassed = false;
 
-  // Track videos user has manually interacted with
+  // Track videos user has manually interacted with (solved math problem)
   const userAllowedVideos = new WeakSet();
 
-  // Track videos currently being interacted with (for click-to-play detection)
-  let recentUserInteraction = false;
-  let interactionTimeout = null;
+  // Track specific videos user has recently clicked on (for click-to-play detection)
+  // This is video-specific, not global, to avoid false positives from unrelated clicks
+  const recentlyInteractedVideos = new WeakSet();
+  const interactionTimeouts = new WeakMap();
 
   // Pending video waiting to be unlocked via math challenge
   let pendingVideo = null;
@@ -355,6 +386,438 @@
     onModalSuccess = null;
   }
 
+  // Check if current site requires intentionality check
+  function requiresIntentionality() {
+    const host = getCurrentHost();
+    const intentionalitySites = settings.intentionalitySites || [];
+    return intentionalitySites.some(site => {
+      const normalizedSite = site.replace(/^www\./, '');
+      return host === normalizedSite || host.endsWith('.' + normalizedSite);
+    });
+  }
+
+  // Inject intentionality overlay styles
+  function injectIntentionalityStyles() {
+    if (document.getElementById('detox-intentionality-styles')) return;
+
+    const styles = document.createElement('style');
+    styles.id = 'detox-intentionality-styles';
+    styles.textContent = `
+      #detox-intentionality-overlay {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%) !important;
+        z-index: 2147483647 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+      }
+
+      #detox-intentionality-container {
+        max-width: 500px !important;
+        width: 90% !important;
+        padding: 40px !important;
+        text-align: center !important;
+      }
+
+      #detox-intentionality-container h1 {
+        color: #fff !important;
+        font-size: 28px !important;
+        font-weight: 700 !important;
+        margin: 0 0 8px 0 !important;
+      }
+
+      #detox-intentionality-container .site-name {
+        color: #667eea !important;
+        font-size: 18px !important;
+        margin-bottom: 32px !important;
+      }
+
+      #detox-intentionality-container .form-section {
+        margin-bottom: 24px !important;
+        text-align: left !important;
+      }
+
+      #detox-intentionality-container label {
+        display: block !important;
+        color: rgba(255, 255, 255, 0.7) !important;
+        font-size: 14px !important;
+        margin-bottom: 8px !important;
+      }
+
+      #detox-intentionality-container textarea,
+      #detox-intentionality-container input {
+        width: 100% !important;
+        padding: 14px 16px !important;
+        font-size: 16px !important;
+        border: 2px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 10px !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        color: #fff !important;
+        outline: none !important;
+        box-sizing: border-box !important;
+        transition: border-color 0.2s !important;
+      }
+
+      #detox-intentionality-container textarea {
+        height: 80px !important;
+        resize: none !important;
+      }
+
+      #detox-intentionality-container textarea:focus,
+      #detox-intentionality-container input:focus {
+        border-color: #667eea !important;
+      }
+
+      #detox-intentionality-container textarea::placeholder,
+      #detox-intentionality-container input::placeholder {
+        color: rgba(255, 255, 255, 0.3) !important;
+      }
+
+      #detox-intentionality-container .time-hint {
+        color: rgba(255, 255, 255, 0.4) !important;
+        font-size: 12px !important;
+        margin-top: 6px !important;
+      }
+
+      #detox-intentionality-container .wait-section {
+        margin: 32px 0 !important;
+      }
+
+      #detox-intentionality-container .timer-ring-container {
+        position: relative !important;
+        width: 120px !important;
+        height: 120px !important;
+        margin: 0 auto 20px !important;
+      }
+
+      #detox-intentionality-container .timer-ring {
+        width: 100% !important;
+        height: 100% !important;
+        transform: rotate(-90deg) !important;
+      }
+
+      #detox-intentionality-container .timer-ring-bg {
+        fill: none !important;
+        stroke: rgba(255, 255, 255, 0.1) !important;
+        stroke-width: 6 !important;
+      }
+
+      #detox-intentionality-container .timer-ring-progress {
+        fill: none !important;
+        stroke: #667eea !important;
+        stroke-width: 6 !important;
+        stroke-linecap: round !important;
+        stroke-dasharray: 283 !important;
+        stroke-dashoffset: 0 !important;
+        transition: stroke-dashoffset 1s linear !important;
+      }
+
+      #detox-intentionality-container .timer-text {
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        text-align: center !important;
+      }
+
+      #detox-intentionality-container .timer-count {
+        font-size: 32px !important;
+        font-weight: 700 !important;
+        color: #fff !important;
+        display: block !important;
+      }
+
+      #detox-intentionality-container .timer-label {
+        font-size: 11px !important;
+        color: rgba(255, 255, 255, 0.5) !important;
+      }
+
+      #detox-intentionality-container .encouragement {
+        color: rgba(255, 255, 255, 0.8) !important;
+        font-size: 15px !important;
+        line-height: 1.6 !important;
+        padding: 16px !important;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)) !important;
+        border-radius: 12px !important;
+        min-height: 60px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+
+      #detox-intentionality-container .button-group {
+        display: flex !important;
+        gap: 12px !important;
+        margin-top: 24px !important;
+      }
+
+      #detox-intentionality-container button {
+        flex: 1 !important;
+        padding: 14px 24px !important;
+        font-size: 15px !important;
+        font-weight: 600 !important;
+        border-radius: 10px !important;
+        cursor: pointer !important;
+        transition: all 0.2s !important;
+        border: none !important;
+      }
+
+      #detox-intentionality-container .enter-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: #fff !important;
+        opacity: 0.5 !important;
+        cursor: not-allowed !important;
+      }
+
+      #detox-intentionality-container .enter-btn.ready {
+        opacity: 1 !important;
+        cursor: pointer !important;
+      }
+
+      #detox-intentionality-container .enter-btn.ready:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4) !important;
+      }
+
+      #detox-intentionality-container .quit-btn {
+        background: rgba(255, 255, 255, 0.1) !important;
+        color: rgba(255, 255, 255, 0.8) !important;
+      }
+
+      #detox-intentionality-container .quit-btn:hover {
+        background: rgba(239, 68, 68, 0.2) !important;
+        color: #f87171 !important;
+      }
+
+      #detox-intentionality-container .form-hidden {
+        display: none !important;
+      }
+    `;
+    document.head.appendChild(styles);
+  }
+
+  // Show intentionality overlay
+  function showIntentionalityOverlay() {
+    if (intentionalityShown || document.getElementById('detox-intentionality-overlay')) {
+      return;
+    }
+
+    intentionalityShown = true;
+    injectIntentionalityStyles();
+
+    const host = getCurrentHost();
+    const overlay = document.createElement('div');
+    overlay.id = 'detox-intentionality-overlay';
+    overlay.innerHTML = `
+      <div id="detox-intentionality-container">
+        <h1>Before you enter...</h1>
+        <div class="site-name">${host}</div>
+
+        <div id="intentionality-form">
+          <div class="form-section">
+            <label for="detox-reason">Why are you opening this site?</label>
+            <textarea id="detox-reason" placeholder="Be honest with yourself..."></textarea>
+          </div>
+
+          <div class="form-section">
+            <label for="detox-duration">How many minutes do you intend to spend?</label>
+            <input type="number" id="detox-duration" placeholder="e.g., 10" min="1" max="120">
+            <div class="time-hint">The tab will automatically close after this time.</div>
+          </div>
+        </div>
+
+        <div id="intentionality-wait" class="wait-section form-hidden">
+          <div class="timer-ring-container">
+            <svg class="timer-ring" viewBox="0 0 100 100">
+              <circle class="timer-ring-bg" cx="50" cy="50" r="45"/>
+              <circle class="timer-ring-progress" id="intentionality-progress" cx="50" cy="50" r="45"/>
+            </svg>
+            <div class="timer-text">
+              <span class="timer-count" id="intentionality-count">20</span>
+              <span class="timer-label">seconds</span>
+            </div>
+          </div>
+          <div class="encouragement" id="intentionality-encouragement"></div>
+        </div>
+
+        <div class="button-group">
+          <button class="quit-btn" id="intentionality-quit">Quit</button>
+          <button class="enter-btn" id="intentionality-enter">Continue</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    // Prevent scrolling
+    document.body.style.overflow = 'hidden';
+
+    const reasonInput = document.getElementById('detox-reason');
+    const durationInput = document.getElementById('detox-duration');
+    const enterBtn = document.getElementById('intentionality-enter');
+    const quitBtn = document.getElementById('intentionality-quit');
+    const formSection = document.getElementById('intentionality-form');
+    const waitSection = document.getElementById('intentionality-wait');
+
+    let waitStarted = false;
+    let waitComplete = false;
+    let submittedReason = '';
+    let submittedDuration = 0;
+
+    // Check form validity
+    const checkFormValidity = () => {
+      const reason = reasonInput.value.trim();
+      const duration = parseInt(durationInput.value);
+      const isValid = reason.length > 0 && duration > 0 && duration <= 120;
+
+      if (isValid && !waitStarted) {
+        enterBtn.classList.add('ready');
+        enterBtn.textContent = 'Continue';
+      } else if (!waitComplete) {
+        enterBtn.classList.remove('ready');
+      }
+    };
+
+    reasonInput.addEventListener('input', checkFormValidity);
+    durationInput.addEventListener('input', checkFormValidity);
+
+    // Handle continue button
+    enterBtn.addEventListener('click', () => {
+      const reason = reasonInput.value.trim();
+      const duration = parseInt(durationInput.value);
+
+      if (!waitStarted && reason.length > 0 && duration > 0 && duration <= 120) {
+        // Start wait timer
+        submittedReason = reason;
+        submittedDuration = duration;
+        waitStarted = true;
+
+        formSection.classList.add('form-hidden');
+        waitSection.classList.remove('form-hidden');
+        enterBtn.classList.remove('ready');
+        enterBtn.textContent = 'Wait...';
+
+        startIntentionalityTimer(() => {
+          waitComplete = true;
+          enterBtn.classList.add('ready');
+          enterBtn.textContent = 'Enter Site';
+        });
+      } else if (waitComplete) {
+        // Start session and allow entry
+        completeIntentionality(submittedReason, submittedDuration);
+      }
+    });
+
+    // Handle quit button
+    quitBtn.addEventListener('click', () => {
+      chrome.runtime.sendMessage({ type: 'closeTab' });
+    });
+
+    // Focus on reason input
+    setTimeout(() => reasonInput.focus(), 100);
+  }
+
+  // Start the 20 second wait timer
+  function startIntentionalityTimer(onComplete) {
+    const TOTAL_SECONDS = 20;
+    let seconds = TOTAL_SECONDS;
+    const countEl = document.getElementById('intentionality-count');
+    const progressEl = document.getElementById('intentionality-progress');
+    const encourageEl = document.getElementById('intentionality-encouragement');
+    const circumference = 283;
+
+    encourageEl.textContent = ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)];
+
+    const interval = setInterval(() => {
+      seconds--;
+      countEl.textContent = seconds;
+
+      const offset = circumference * (1 - seconds / TOTAL_SECONDS);
+      progressEl.style.strokeDashoffset = offset;
+
+      // Change encouragement every 5 seconds
+      if (seconds % 5 === 0 && seconds > 0) {
+        encourageEl.textContent = ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)];
+      }
+
+      if (seconds <= 0) {
+        clearInterval(interval);
+        onComplete();
+      }
+    }, 1000);
+  }
+
+  // Complete intentionality and allow entry
+  function completeIntentionality(reason, duration) {
+    const hostname = window.location.hostname;
+
+    chrome.runtime.sendMessage({
+      type: 'startIntentionalitySession',
+      hostname,
+      duration,
+      reason
+    }, (response) => {
+      // Check for runtime errors
+      if (chrome.runtime.lastError) {
+        console.error('[REJECT BRAINROT] Error starting session:', chrome.runtime.lastError);
+      }
+
+      // Allow entry even if session tracking fails (graceful degradation)
+      // The filters will still work, just won't auto-close
+      intentionalityPassed = true;
+      removeIntentionalityOverlay();
+
+      // Now initialize filters and video blocking
+      updateFilter();
+      killVideos();
+
+      if (document.documentElement) {
+        observer.observe(document.documentElement, {
+          attributes: true,
+          attributeFilter: ['style', 'class'],
+          childList: true,
+          subtree: true
+        });
+      }
+
+      if (response && response.success) {
+        console.log('[REJECT BRAINROT] Session started, will auto-close at', new Date(response.expiresAt));
+      } else {
+        console.warn('[REJECT BRAINROT] Session tracking not active - tabs will not auto-close');
+      }
+    });
+  }
+
+  // Remove intentionality overlay
+  function removeIntentionalityOverlay() {
+    const overlay = document.getElementById('detox-intentionality-overlay');
+    if (overlay) {
+      overlay.remove();
+    }
+    document.body.style.overflow = '';
+  }
+
+  // Check with background if we have an active session
+  async function checkIntentionalitySession() {
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage({
+        type: 'checkIntentionalitySession',
+        hostname: window.location.hostname
+      }, (response) => {
+        if (chrome.runtime.lastError) {
+          resolve({ hasSession: false });
+          return;
+        }
+        resolve(response || { hasSession: false });
+      });
+    });
+  }
+
   // Get current hostname
   function getCurrentHost() {
     return window.location.hostname.replace(/^www\./, '');
@@ -369,10 +832,33 @@
     });
   }
 
-  // Check if extension is currently active (not paused)
+  // Check if current time is within schedule
+  function isWithinSchedule() {
+    if (!settings.scheduleEnabled) return true; // Schedule disabled, always active
+
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentTime = currentHour * 60 + currentMinute;
+
+    const startTime = (settings.scheduleStart || 4) * 60;
+    const endTime = (settings.scheduleEnd || 21) * 60;
+
+    // Handle schedule that spans midnight
+    if (startTime <= endTime) {
+      // Normal case: e.g., 4am to 9pm
+      return currentTime >= startTime && currentTime < endTime;
+    } else {
+      // Spans midnight: e.g., 9pm to 4am (inverted)
+      return currentTime >= startTime || currentTime < endTime;
+    }
+  }
+
+  // Check if extension is currently active (not paused and within schedule)
   function isActive() {
     if (!settings.enabled) return false;
     if (settings.pausedUntil && Date.now() < settings.pausedUntil) return false;
+    if (!isWithinSchedule()) return false;
     return true;
   }
 
@@ -424,26 +910,107 @@
     }
   }
 
-  // Track user interactions globally to detect intentional plays
-  function setupInteractionTracking() {
-    // Any click/touch means user is actively interacting
-    const markInteraction = (e) => {
-      if (e.isTrusted) {
-        recentUserInteraction = true;
-        clearTimeout(interactionTimeout);
-        // Reset after 500ms - enough time for the play() call to fire
-        interactionTimeout = setTimeout(() => {
-          recentUserInteraction = false;
-        }, 500);
+  // Find the video element related to a click target (if any)
+  function findRelatedVideo(element) {
+    if (!element) return null;
+
+    // If clicked element IS a video, return it
+    if (element.tagName === 'VIDEO') {
+      return element;
+    }
+
+    // Walk up the DOM to find a video container, then find the video inside
+    let current = element;
+    const maxDepth = 15; // Don't traverse too far
+
+    for (let i = 0; i < maxDepth && current && current !== document.body; i++) {
+      // Check for common video player containers by class/attribute
+      const isPlayerContainer = current.classList && (
+        current.classList.contains('html5-video-player') ||      // YouTube
+        current.classList.contains('video-player') ||            // Generic
+        current.classList.contains('ytp-player') ||              // YouTube
+        current.classList.contains('html5-video-container') ||   // YouTube
+        current.classList.contains('video-js') ||                // Video.js
+        current.classList.contains('jw-video') ||                // JW Player
+        current.classList.contains('vjs-tech')                   // Video.js
+      );
+
+      // Twitter-specific: data-testid attributes
+      const testId = current.getAttribute && current.getAttribute('data-testid');
+      const isTwitterVideo = testId && (
+        testId.includes('video') ||
+        testId.includes('Video') ||
+        testId === 'videoPlayer' ||
+        testId === 'videoComponent'
+      );
+
+      // Check if this element contains a video
+      if (isPlayerContainer || isTwitterVideo) {
+        const video = current.querySelector('video');
+        if (video) return video;
       }
+
+      // Also check if parent has a video as direct child (common pattern)
+      if (current.parentElement) {
+        const siblingVideo = current.parentElement.querySelector(':scope > video');
+        if (siblingVideo) return siblingVideo;
+      }
+
+      current = current.parentElement;
+    }
+
+    // Last resort: check if click was inside any element that contains a video nearby
+    // This catches clicks on custom play buttons that are siblings of video elements
+    const closestContainer = element.closest('[class*="video"], [class*="player"], [data-testid*="video"]');
+    if (closestContainer) {
+      const video = closestContainer.querySelector('video');
+      if (video) return video;
+    }
+
+    return null;
+  }
+
+  // Track user interactions with SPECIFIC videos to detect intentional plays
+  // This prevents false positives when user clicks elsewhere on the page
+  function setupInteractionTracking() {
+    const markVideoInteraction = (e) => {
+      if (!e.isTrusted) return;
+
+      // Find if this click/touch was on or inside a video player
+      const video = findRelatedVideo(e.target);
+      if (!video) return; // Click wasn't related to any video
+
+      // Mark this specific video as recently interacted with
+      recentlyInteractedVideos.add(video);
+
+      // Clear any existing timeout for this video
+      const existingTimeout = interactionTimeouts.get(video);
+      if (existingTimeout) clearTimeout(existingTimeout);
+
+      // Remove from set after 500ms
+      const timeout = setTimeout(() => {
+        recentlyInteractedVideos.delete(video);
+        interactionTimeouts.delete(video);
+      }, 500);
+      interactionTimeouts.set(video, timeout);
     };
 
-    document.addEventListener('click', markInteraction, true);
-    document.addEventListener('touchstart', markInteraction, true);
+    document.addEventListener('click', markVideoInteraction, true);
+    document.addEventListener('touchstart', markVideoInteraction, true);
     document.addEventListener('keydown', (e) => {
-      // Space or Enter could be play triggers
+      // Space or Enter while focused on a video element
       if (e.isTrusted && (e.key === ' ' || e.key === 'Enter')) {
-        markInteraction(e);
+        const video = findRelatedVideo(e.target);
+        if (video) {
+          recentlyInteractedVideos.add(video);
+          const existingTimeout = interactionTimeouts.get(video);
+          if (existingTimeout) clearTimeout(existingTimeout);
+          const timeout = setTimeout(() => {
+            recentlyInteractedVideos.delete(video);
+            interactionTimeouts.delete(video);
+          }, 500);
+          interactionTimeouts.set(video, timeout);
+        }
       }
     }, true);
   }
@@ -466,8 +1033,8 @@
         return originalPlay.call(video);
       }
 
-      // If there was a recent user interaction, show math challenge
-      if (recentUserInteraction) {
+      // Only show modal if user specifically interacted with THIS video
+      if (recentlyInteractedVideos.has(video)) {
         showVideoModalForElement(video);
         return Promise.resolve();
       }
@@ -564,8 +1131,8 @@
     if (!userAllowedVideos.has(video)) {
       video.pause();
 
-      // Only show modal if there was recent user interaction (user clicked play)
-      if (recentUserInteraction) {
+      // Only show modal if user specifically clicked on THIS video
+      if (recentlyInteractedVideos.has(video)) {
         showVideoModalForElement(video);
       }
     }
@@ -643,6 +1210,19 @@
     await loadSettings();
     setupMessageListener();
     setupInteractionTracking();
+
+    // Check if this is an intentionality site and we don't have an active session
+    if (isActive() && requiresIntentionality()) {
+      const sessionInfo = await checkIntentionalitySession();
+      if (!sessionInfo.hasSession) {
+        // Show intentionality overlay before allowing access
+        showIntentionalityOverlay();
+        return; // Don't apply filters yet, wait for user to complete intentionality
+      } else {
+        intentionalityPassed = true;
+      }
+    }
+
     updateFilter();
     killVideos();
 

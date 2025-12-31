@@ -38,6 +38,29 @@
       </section>
 
       <section class="setting-group">
+        <h2>Schedule</h2>
+        <p class="hint">Filters are active during these hours.</p>
+        <div class="schedule-toggle">
+          <label class="toggle-switch">
+            <input type="checkbox" id="schedule-enabled">
+            <span class="toggle-slider"></span>
+          </label>
+          <span id="schedule-status">Enabled</span>
+        </div>
+        <div class="schedule-times" id="schedule-times">
+          <div class="time-input">
+            <label for="schedule-start">From</label>
+            <select id="schedule-start"></select>
+          </div>
+          <div class="time-input">
+            <label for="schedule-end">To</label>
+            <select id="schedule-end"></select>
+          </div>
+        </div>
+        <p class="schedule-hint" id="schedule-hint">Active 4:00 AM - 9:00 PM</p>
+      </section>
+
+      <section class="setting-group">
         <h2>Blocked Sites</h2>
         <div class="site-list" id="site-list">
           <!-- Sites will be populated by JS -->
@@ -45,6 +68,18 @@
         <div class="add-site">
           <input type="text" id="new-site" placeholder="Add site (e.g. example.com)">
           <button id="add-site-btn">Add</button>
+        </div>
+      </section>
+
+      <section class="setting-group">
+        <h2>Intentionality Sites</h2>
+        <p class="hint">These sites require stating your purpose and time limit before entry. Tabs auto-close when time expires.</p>
+        <div class="site-list" id="intentionality-site-list">
+          <!-- Sites will be populated by JS -->
+        </div>
+        <div class="add-site">
+          <input type="text" id="new-intentionality-site" placeholder="Add site (e.g. x.com)">
+          <button id="add-intentionality-site-btn">Add</button>
         </div>
       </section>
 

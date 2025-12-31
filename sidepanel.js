@@ -17,7 +17,11 @@ const DEFAULT_SETTINGS = {
     'pinterest.com'
   ],
   enabled: true,
-  pausedUntil: null
+  pausedUntil: null,
+  scheduleEnabled: true,
+  scheduleStart: 4,
+  scheduleEnd: 21,
+  intentionalitySites: ['x.com', 'twitter.com', 'youtube.com']
 };
 
 // Intensity descriptions
@@ -105,6 +109,7 @@ const views = {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
+  populateTimeDropdowns();
   await loadSettings();
   renderSettings();
   setupEventListeners();
@@ -133,6 +138,59 @@ async function saveSettings() {
   });
 }
 
+// Format hour for display
+function formatHour(hour) {
+  if (hour === 0) return '12:00 AM';
+  if (hour === 12) return '12:00 PM';
+  if (hour < 12) return `${hour}:00 AM`;
+  return `${hour - 12}:00 PM`;
+}
+
+// Populate time dropdowns
+function populateTimeDropdowns() {
+  const startSelect = document.getElementById('schedule-start');
+  const endSelect = document.getElementById('schedule-end');
+
+  // Clear existing options
+  startSelect.innerHTML = '';
+  endSelect.innerHTML = '';
+
+  // Add 24 hour options
+  for (let hour = 0; hour < 24; hour++) {
+    const option1 = document.createElement('option');
+    option1.value = hour;
+    option1.textContent = formatHour(hour);
+    startSelect.appendChild(option1);
+
+    const option2 = document.createElement('option');
+    option2.value = hour;
+    option2.textContent = formatHour(hour);
+    endSelect.appendChild(option2);
+  }
+}
+
+// Update schedule hint text
+function updateScheduleHint() {
+  const hint = document.getElementById('schedule-hint');
+  const scheduleEnabled = document.getElementById('schedule-enabled');
+  const scheduleTimes = document.getElementById('schedule-times');
+  const scheduleStatus = document.getElementById('schedule-status');
+
+  if (!settings.scheduleEnabled) {
+    hint.textContent = 'Schedule disabled - filters always active';
+    hint.style.color = '#f59e0b';
+    scheduleTimes.classList.add('disabled');
+    scheduleStatus.textContent = 'Disabled';
+  } else {
+    const startFormatted = formatHour(settings.scheduleStart);
+    const endFormatted = formatHour(settings.scheduleEnd);
+    hint.textContent = `Active ${startFormatted} - ${endFormatted}`;
+    hint.style.color = '#22c55e';
+    scheduleTimes.classList.remove('disabled');
+    scheduleStatus.textContent = 'Enabled';
+  }
+}
+
 // Render settings UI
 function renderSettings() {
   // Filter type buttons
@@ -148,8 +206,17 @@ function renderSettings() {
   // Update intensity hint
   document.getElementById('intensity-hint').textContent = INTENSITY_HINTS[settings.intensity];
 
+  // Schedule settings
+  document.getElementById('schedule-enabled').checked = settings.scheduleEnabled;
+  document.getElementById('schedule-start').value = settings.scheduleStart;
+  document.getElementById('schedule-end').value = settings.scheduleEnd;
+  updateScheduleHint();
+
   // Site list
   renderSiteList();
+
+  // Intentionality site list
+  renderIntentionalitySiteList();
 
   // Status
   updateStatus();
@@ -166,6 +233,37 @@ function renderSiteList() {
   `).join('');
 }
 
+// Render intentionality site list
+function renderIntentionalitySiteList() {
+  const list = document.getElementById('intentionality-site-list');
+  const intentionalitySites = settings.intentionalitySites || [];
+  list.innerHTML = intentionalitySites.map(site => `
+    <div class="site-item intentionality-site-item" data-site="${site}">
+      <span>${site}</span>
+      <button title="Remove site">×</button>
+    </div>
+  `).join('');
+}
+
+// Check if current time is within schedule
+function isWithinSchedule() {
+  if (!settings.scheduleEnabled) return true;
+
+  const now = new Date();
+  const currentHour = now.getHours();
+  const currentMinute = now.getMinutes();
+  const currentTime = currentHour * 60 + currentMinute;
+
+  const startTime = (settings.scheduleStart || 4) * 60;
+  const endTime = (settings.scheduleEnd || 21) * 60;
+
+  if (startTime <= endTime) {
+    return currentTime >= startTime && currentTime < endTime;
+  } else {
+    return currentTime >= startTime || currentTime < endTime;
+  }
+}
+
 // Update status bar
 function updateStatus() {
   const dot = document.querySelector('.status-dot');
@@ -175,6 +273,7 @@ function updateStatus() {
   // Check if paused
   const isPaused = settings.pausedUntil && Date.now() < settings.pausedUntil;
   const isDisabledForDay = !settings.enabled;
+  const isOutsideSchedule = settings.scheduleEnabled && !isWithinSchedule();
 
   if (isPaused) {
     const remaining = Math.max(0, settings.pausedUntil - Date.now());
@@ -194,6 +293,10 @@ function updateStatus() {
     dot.className = 'status-dot paused';
     text.textContent = 'Disabled for today';
     endBreakBtn.classList.remove('hidden');
+  } else if (isOutsideSchedule) {
+    dot.className = 'status-dot paused';
+    text.textContent = 'Off (outside schedule)';
+    endBreakBtn.classList.add('hidden');
   } else {
     dot.className = 'status-dot active';
     text.textContent = 'Active';
@@ -234,6 +337,29 @@ function setupEventListeners() {
     });
   });
 
+  // Schedule toggle
+  document.getElementById('schedule-enabled').addEventListener('change', (e) => {
+    settings.scheduleEnabled = e.target.checked;
+    saveSettings();
+    updateScheduleHint();
+    notifyContentScripts();
+  });
+
+  // Schedule times
+  document.getElementById('schedule-start').addEventListener('change', (e) => {
+    settings.scheduleStart = parseInt(e.target.value);
+    saveSettings();
+    updateScheduleHint();
+    notifyContentScripts();
+  });
+
+  document.getElementById('schedule-end').addEventListener('change', (e) => {
+    settings.scheduleEnd = parseInt(e.target.value);
+    saveSettings();
+    updateScheduleHint();
+    notifyContentScripts();
+  });
+
   // Add site
   document.getElementById('add-site-btn').addEventListener('click', addSite);
   document.getElementById('new-site').addEventListener('keypress', (e) => {
@@ -245,6 +371,20 @@ function setupEventListeners() {
     if (e.target.tagName === 'BUTTON') {
       const site = e.target.closest('.site-item').dataset.site;
       startRemoveChallenge(site);
+    }
+  });
+
+  // Add intentionality site
+  document.getElementById('add-intentionality-site-btn').addEventListener('click', addIntentionalitySite);
+  document.getElementById('new-intentionality-site').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') addIntentionalitySite();
+  });
+
+  // Remove intentionality site (delegated)
+  document.getElementById('intentionality-site-list').addEventListener('click', (e) => {
+    if (e.target.tagName === 'BUTTON') {
+      const site = e.target.closest('.site-item').dataset.site;
+      removeIntentionalitySite(site);
     }
   });
 
@@ -294,6 +434,37 @@ function addSite() {
   }
 
   input.value = '';
+}
+
+// Add a new intentionality site
+function addIntentionalitySite() {
+  const input = document.getElementById('new-intentionality-site');
+  let site = input.value.trim().toLowerCase();
+
+  site = site.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '');
+
+  if (!settings.intentionalitySites) {
+    settings.intentionalitySites = [];
+  }
+
+  if (site && !settings.intentionalitySites.includes(site)) {
+    settings.intentionalitySites.push(site);
+    saveSettings();
+    renderIntentionalitySiteList();
+    notifyContentScripts();
+  }
+
+  input.value = '';
+}
+
+// Remove an intentionality site (no challenge required)
+function removeIntentionalitySite(site) {
+  if (!settings.intentionalitySites) return;
+
+  settings.intentionalitySites = settings.intentionalitySites.filter(s => s !== site);
+  saveSettings();
+  renderIntentionalitySiteList();
+  notifyContentScripts();
 }
 
 // Start break challenge
